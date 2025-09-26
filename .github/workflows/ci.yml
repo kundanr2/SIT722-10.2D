@@ -1,21 +1,25 @@
-name: CI Pipeline
+name: CI Pipeline - Stage 1
 
 on:
   push:
     branches:
       - testing
 
+env:
+  ACR_LOGIN_SERVER: sit72210dacr.azurecr.io
+  IMAGE_TAG: ${{ github.sha }}
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
+      product_db:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: customers
+          POSTGRES_DB: products
         ports:
           - 5432:5432
         options: >-
@@ -24,37 +28,97 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+      order_db:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orders
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      customer_db:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: customers
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - name: Install dependencies & run tests
+      - name: Install dependencies
         run: |
+          pip install --upgrade pip
+          for req in backend/*/requirements.txt; do pip install -r "$req"; done
           pip install pytest httpx psycopg2-binary
-          cd backend/customer_service && pip install -r requirements.txt && pytest
-          cd ../product_service && pip install -r requirements.txt && pytest
-          cd ../order_service && pip install -r requirements.txt && pytest
 
-      - name: Log in to Azure
+      - name: Run Customer Service tests
+        working-directory: backend/customer_service
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5434
+          POSTGRES_DB: customers
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: pytest tests --disable-warnings
+
+      - name: Run Product Service tests
+        working-directory: backend/product_service
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: products
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: pytest tests --disable-warnings
+
+      - name: Run Order Service tests
+        working-directory: backend/order_service
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5433
+          POSTGRES_DB: orders
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: pytest tests --disable-warnings
+
+      - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Log in to ACR
-        run: az acr login --name sit72210dacr
+      - name: Docker Login to ACR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
-      - name: Build and push Docker images
+      - name: Build and Push Images
         run: |
-          docker build -t sit72210dacr.azurecr.io/frontend:latest ./frontend
-          docker build -t sit72210dacr.azurecr.io/customer-service:latest ./backend/customer_service
-          docker build -t sit72210dacr.azurecr.io/product-service:latest ./backend/product_service
-          docker build -t sit72210dacr.azurecr.io/order-service:latest ./backend/order_service
-          docker push sit72210dacr.azurecr.io/frontend:latest
-          docker push sit72210dacr.azurecr.io/customer-service:latest
-          docker push sit72210dacr.azurecr.io/product-service:latest
-          docker push sit72210dacr.azurecr.io/order-service:latest
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ./frontend
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }} ./backend/customer_service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }} ./backend/product_service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }} ./backend/order_service
+          docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }}
