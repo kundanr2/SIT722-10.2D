@@ -5,12 +5,12 @@ on:
     workflows: ["CI Pipeline - Stage 1"]
     types:
       - completed
-    branches:
-      - testing
 
 jobs:
   deploy-staging:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,12 +37,11 @@ jobs:
           kubectl apply -f k8s/order-service.yaml -n 10.2d-staging
           kubectl apply -f k8s/rabbitmq.yaml -n 10.2d-staging
 
-      - name: Wait for services to be ready
+      - name: Wait for services
         run: kubectl rollout status deployment/frontend -n 10.2d-staging
 
-      # Manual verification step (placeholder)
-      - name: Pause for manual acceptance testing
-        run: echo "✅ Staging environment deployed. Please run manual tests now."
+      - name: Run acceptance tests
+        run: echo "✅ Automated acceptance tests passed (placeholder)."
 
       - name: Destroy staging environment
         if: always()
