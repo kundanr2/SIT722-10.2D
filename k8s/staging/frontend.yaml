@@ -15,21 +15,21 @@ spec:
       labels:
         app: frontend
     spec:
+      imagePullSecrets:        # ✅ moved here
+        - name: acr-secret
       containers:
-      - name: frontend
-        image: sit72210dacr.azurecr.io/frontend:latest
-        ports:
-          - containerPort: 80
-        imagePullSecrets:
-          - name: acr-secret
-        volumeMounts:
-          - name: frontend-config-volume
-            mountPath: /usr/share/nginx/html/env.js
-            subPath: env.js
-      volumes:   # ✅ now correctly aligned with containers
-      - name: frontend-config-volume
-        configMap:
-          name: frontend-config
+        - name: frontend
+          image: sit72210dacr.azurecr.io/frontend:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: frontend-config-volume
+              mountPath: /usr/share/nginx/html/env.js
+              subPath: env.js
+      volumes:
+        - name: frontend-config-volume
+          configMap:
+            name: frontend-config
 ---
 apiVersion: v1
 kind: Service
