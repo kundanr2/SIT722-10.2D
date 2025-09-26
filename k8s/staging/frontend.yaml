@@ -26,10 +26,10 @@ spec:
           - name: frontend-config-volume
             mountPath: /usr/share/nginx/html/env.js
             subPath: env.js
-      volumes:
-        - name: frontend-config-volume
-          configMap:
-            name: frontend-config
+      volumes:   # ✅ now correctly aligned with containers
+      - name: frontend-config-volume
+        configMap:
+          name: frontend-config
 ---
 apiVersion: v1
 kind: Service
