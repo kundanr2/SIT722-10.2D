@@ -31,15 +31,15 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Log in to ACR
-      run: az acr login --name 10.2dacr
+      run: az acr login --name sit72210dacr
 
     - name: Build and push Docker images
       run: |
-        docker build -t 10.2dacr.azurecr.io/frontend:latest ./frontend
-        docker build -t 10.2dacr.azurecr.io/customer-service:latest ./backend/customer_service
-        docker build -t 10.2dacr.azurecr.io/product-service:latest ./backend/product_service
-        docker build -t 10.2dacr.azurecr.io/order-service:latest ./backend/order_service
-        docker push 10.2dacr.azurecr.io/frontend:latest
-        docker push 10.2dacr.azurecr.io/customer-service:latest
-        docker push 10.2dacr.azurecr.io/product-service:latest
-        docker push 10.2dacr.azurecr.io/order-service:latest
+        docker build -t sit72210dacr.azurecr.io/frontend:latest ./frontend
+        docker build -t sit72210dacr.azurecr.io/customer-service:latest ./backend/customer_service
+        docker build -t sit72210dacr.azurecr.io/product-service:latest ./backend/product_service
+        docker build -t sit72210dacr.azurecr.io/order-service:latest ./backend/order_service
+        docker push sit72210dacr.azurecr.io/frontend:latest
+        docker push sit72210dacr.azurecr.io/customer-service:latest
+        docker push sit72210dacr.azurecr.io/product-service:latest
+        docker push sit72210dacr.azurecr.io/order-service:latest
