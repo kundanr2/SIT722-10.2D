@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-deployment
+  name: customer-deployment
   namespace: sit722-staging
-  labels: { app: product-service }
+  labels: { app: customer-service }
 spec:
   replicas: 2
-  selector: { matchLabels: { app: product-service } }
+  selector: { matchLabels: { app: customer-service } }
   template:
-    metadata: { labels: { app: product-service } }
+    metadata: { labels: { app: customer-service } }
     spec:
       containers:
-      - name: product-service
-        image: sit72210dacr.azurecr.io/product-service:latest
+      - name: customer-service
+        image: sit72210dacr.azurecr.io/customer-service:latest
         ports: [{ containerPort: 8000 }]
         env:
         - name: DATABASE_URL
-          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@product-db:5432/$(POSTGRES_DB_PRODUCT)
+          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@customer-db:5432/$(POSTGRES_DB_CUSTOMER)
         envFrom:
         - configMapRef: { name: app-config }
         - secretRef:    { name: app-secrets }
@@ -26,32 +26,32 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: product-service
+  name: customer-service
   namespace: sit722-staging
 spec:
-  selector: { app: product-service }
+  selector: { app: customer-service }
   ports: [{ port: 80, targetPort: 8000 }]
   type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-deployment
-  namespace: sit722-prod
-  labels: { app: product-service }
+  name: customer-deployment
+  namespace: sit722-staging
+  labels: { app: customer-service }
 spec:
   replicas: 3
-  selector: { matchLabels: { app: product-service } }
+  selector: { matchLabels: { app: customer-service } }
   template:
-    metadata: { labels: { app: product-service } }
+    metadata: { labels: { app: customer-service } }
     spec:
       containers:
-      - name: product-service
-        image: 10.2dacr.azurecr.io/product-service:latest
+      - name: customer-service
+        image: 10.2dacr.azurecr.io/customer-service:latest
         ports: [{ containerPort: 8000 }]
         env:
         - name: DATABASE_URL
-          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@product-db:5432/$(POSTGRES_DB_PRODUCT)
+          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@customer-db:5432/$(POSTGRES_DB_CUSTOMER)
         envFrom:
         - configMapRef: { name: app-config }
         - secretRef:    { name: app-secrets }
@@ -61,9 +61,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: product-service
-  namespace: sit722-prod
+  name: customer-service
+  namespace: sit722-staging
 spec:
-  selector: { app: product-service }
+  selector: { app: customer-service }
   ports: [{ port: 80, targetPort: 8000 }]
   type: ClusterIP

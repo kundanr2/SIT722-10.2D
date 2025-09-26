@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: sit722-staging
+data:
+  PRODUCTS_DB_NAME: products
+  ORDERS_DB_NAME: orders
+  CUSTOMERS_DB_NAME: customers
+
+  AZURE_STORAGE_CONTAINER_NAME: images
+  AZURE_SAS_TOKEN_EXPIRY_HOURS: "24"
+
+  PRODUCT_SERVICE_URL: http://product-service
+  ORDER_SERVICE_URL: http://order-service
+  CUSTOMER_SERVICE_URL: http://customer-service
+  RABBITMQ_HOST: rabbitmq
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: sit722-staging
+data:
+  PRODUCTS_DB_NAME: products
+  ORDERS_DB_NAME: orders
+  CUSTOMERS_DB_NAME: customers
+
+  AZURE_STORAGE_CONTAINER_NAME: images
+  AZURE_SAS_TOKEN_EXPIRY_HOURS: "24"
+
+  PRODUCT_SERVICE_URL: http://product-service
+  ORDER_SERVICE_URL: http://order-service
+  CUSTOMER_SERVICE_URL: http://customer-service
+  RABBITMQ_HOST: rabbitmq

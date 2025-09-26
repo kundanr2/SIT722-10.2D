@@ -1,14 +1,15 @@
+# staging
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customer-db
-  namespace: sit722-staging
-  labels: { app: customer-db }
+  name: order-db
+  namespace: sit722-prod
+  labels: { app: order-db }
 spec:
   replicas: 1
-  selector: { matchLabels: { app: customer-db } }
+  selector: { matchLabels: { app: order-db } }
   template:
-    metadata: { labels: { app: customer-db } }
+    metadata: { labels: { app: order-db } }
     spec:
       containers:
       - name: postgres
@@ -19,34 +20,33 @@ spec:
         - name: POSTGRES_PASSWORD
           valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
         - name: POSTGRES_DB
-          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_CUSTOMER } }
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_ORDER } }
         ports: [{ containerPort: 5432 }]
         volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
-      volumes:
-      - name: data
-        emptyDir: {}   # swap to PVC later for prod persistence
+      volumes: [{ name: data, emptyDir: {} }]
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: customer-db
-  namespace: sit722-staging
+  name: order-db
+  namespace: sit722-prod
 spec:
-  selector: { app: customer-db }
+  selector: { app: order-db }
   ports: [{ port: 5432, targetPort: 5432 }]
   type: ClusterIP
 ---
+# production
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customer-db
+  name: order-db
   namespace: sit722-prod
-  labels: { app: customer-db }
+  labels: { app: order-db }
 spec:
   replicas: 1
-  selector: { matchLabels: { app: customer-db } }
+  selector: { matchLabels: { app: order-db } }
   template:
-    metadata: { labels: { app: customer-db } }
+    metadata: { labels: { app: order-db } }
     spec:
       containers:
       - name: postgres
@@ -57,19 +57,17 @@ spec:
         - name: POSTGRES_PASSWORD
           valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
         - name: POSTGRES_DB
-          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_CUSTOMER } }
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_ORDER } }
         ports: [{ containerPort: 5432 }]
         volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
-      volumes:
-      - name: data
-        emptyDir: {}
+      volumes: [{ name: data, emptyDir: {} }]
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: customer-db
+  name: order-db
   namespace: sit722-prod
 spec:
-  selector: { app: customer-db }
+  selector: { app: order-db }
   ports: [{ port: 5432, targetPort: 5432 }]
   type: ClusterIP
