@@ -31,18 +31,18 @@ jobs:
       - name: Deploy to staging namespace
         run: |
           kubectl apply -f k8s/namespace-staging.yaml
-          kubectl apply -f k8s/frontend.yaml -n 10.2d-staging
-          kubectl apply -f k8s/customer-service.yaml -n 10.2d-staging
-          kubectl apply -f k8s/product-service.yaml -n 10.2d-staging
-          kubectl apply -f k8s/order-service.yaml -n 10.2d-staging
-          kubectl apply -f k8s/rabbitmq.yaml -n 10.2d-staging
+          kubectl apply -f k8s/frontend.yaml -n sit722-staging
+          kubectl apply -f k8s/customer-service.yaml -n sit722-staging
+          kubectl apply -f k8s/product-service.yaml -n sit722-staging
+          kubectl apply -f k8s/order-service.yaml -n sit722-staging
+          kubectl apply -f k8s/rabbitmq.yaml -n sit722-staging
 
       - name: Wait for services
-        run: kubectl rollout status deployment/frontend -n 10.2d-staging
+        run: kubectl rollout status deployment/frontend -n sit722-staging
 
       - name: Run acceptance tests
         run: echo "✅ Automated acceptance tests passed (placeholder)."
 
       - name: Destroy staging environment
         if: always()
-        run: kubectl delete namespace 10.2d-staging
+        run: kubectl delete namespace sit722-staging
