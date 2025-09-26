@@ -26,7 +26,7 @@ jobs:
           version: 'latest'
 
       - name: Get AKS credentials
-        run: az aks get-credentials --resource-group sit72210d-rg --name sit72210d-aks --overwrite-existing
+        run: az aks get-credentials --resource-group 10.2d-rg --name sit722aks --overwrite-existing
 
       - name: Deploy to staging namespace
         run: |
