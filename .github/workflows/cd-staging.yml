@@ -45,4 +45,5 @@ jobs:
 
       - name: Destroy staging environment
         if: always()
+
         run: kubectl delete namespace sit722-staging

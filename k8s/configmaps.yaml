@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: 10.2d-staging
+  namespace: sit722-staging
 data:
   PRODUCTS_DB_NAME: products
   ORDERS_DB_NAME: orders
@@ -20,7 +20,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: 10.2d-prod
+  namespace: sit722-prod
 data:
   PRODUCTS_DB_NAME: products
   ORDERS_DB_NAME: orders

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: customer-deployment
-  namespace: 10.2d-staging
+  namespace: sit722-staging
   labels: { app: customer-service }
 spec:
   replicas: 2
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: customer-service
-  namespace: 10.2d-staging
+  namespace: sit722-staging
 spec:
   selector: { app: customer-service }
   ports: [{ port: 80, targetPort: 8000 }]
@@ -37,7 +37,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: customer-deployment
-  namespace: 10.2d-prod
+  namespace: sit722-prod
   labels: { app: customer-service }
 spec:
   replicas: 3
@@ -62,7 +62,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: customer-service
-  namespace: 10.2d-prod
+  namespace: sit722-prod
 spec:
   selector: { app: customer-service }
   ports: [{ port: 80, targetPort: 8000 }]
