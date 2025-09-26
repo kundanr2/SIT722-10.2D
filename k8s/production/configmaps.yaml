@@ -16,20 +16,16 @@ data:
   CUSTOMER_SERVICE_URL: http://customer-service
   RABBITMQ_HOST: rabbitmq
 ---
+# Frontend configuration (production)
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
+  name: frontend-config
   namespace: sit722-prod
 data:
-  PRODUCTS_DB_NAME: products
-  ORDERS_DB_NAME: orders
-  CUSTOMERS_DB_NAME: customers
-
-  AZURE_STORAGE_CONTAINER_NAME: images
-  AZURE_SAS_TOKEN_EXPIRY_HOURS: "24"
-
-  PRODUCT_SERVICE_URL: http://product-service
-  ORDER_SERVICE_URL: http://order-service
-  CUSTOMER_SERVICE_URL: http://customer-service
-  RABBITMQ_HOST: rabbitmq
+  env.js: |
+    window._env_ = {
+      PRODUCT_API_BASE_URL: "http://product-service.sit722-prod.svc.cluster.local",
+      ORDER_API_BASE_URL: "http://order-service.sit722-prod.svc.cluster.local",
+      CUSTOMER_API_BASE_URL: "http://customer-service.sit722-prod.svc.cluster.local"
+    };

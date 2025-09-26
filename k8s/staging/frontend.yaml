@@ -3,21 +3,33 @@ kind: Deployment
 metadata:
   name: frontend-deployment
   namespace: sit722-staging
-  labels: { app: frontend }
+  labels:
+    app: frontend
 spec:
   replicas: 2
-  selector: { matchLabels: { app: frontend } }
+  selector:
+    matchLabels:
+      app: frontend
   template:
-    metadata: { labels: { app: frontend } }
+    metadata:
+      labels:
+        app: frontend
     spec:
       containers:
       - name: frontend
         image: sit72210dacr.azurecr.io/frontend:latest
-        ports: [{ containerPort: 80 }]
-        envFrom:
-        - configMapRef: { name: app-config }
-      imagePullSecrets:
-      - name: acr-secret
+        ports:
+          - containerPort: 80
+        imagePullSecrets:
+          - name: acr-secret
+        volumeMounts:
+          - name: frontend-config-volume
+            mountPath: /usr/share/nginx/html/env.js
+            subPath: env.js
+      volumes:
+        - name: frontend-config-volume
+          configMap:
+            name: frontend-config
 ---
 apiVersion: v1
 kind: Service
@@ -25,37 +37,9 @@ metadata:
   name: frontend
   namespace: sit722-staging
 spec:
-  selector: { app: frontend }
-  ports: [{ port: 80, targetPort: 80 }]
-  type: LoadBalancer
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend-deployment
-  namespace: sit722-staging
-  labels: { app: frontend }
-spec:
-  replicas: 3
-  selector: { matchLabels: { app: frontend } }
-  template:
-    metadata: { labels: { app: frontend } }
-    spec:
-      containers:
-      - name: frontend
-        image: 10.2dacr.azurecr.io/frontend:latest
-        ports: [{ containerPort: 80 }]
-        envFrom:
-        - configMapRef: { name: app-config }
-      imagePullSecrets:
-      - name: acr-secret
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  namespace: sit722-staging
-spec:
-  selector: { app: frontend }
-  ports: [{ port: 80, targetPort: 80 }]
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80
   type: LoadBalancer
