@@ -9,38 +9,52 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: customers
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies & run tests
-      run: |
-        pip install pytest
-        cd backend/customer_service && pip install -r requirements.txt && pytest
-        cd ../product_service && pip install -r requirements.txt && pytest
-        cd ../order_service && pip install -r requirements.txt && pytest
+      - name: Install dependencies & run tests
+        run: |
+          pip install pytest httpx psycopg2-binary
+          cd backend/customer_service && pip install -r requirements.txt && pytest
+          cd ../product_service && pip install -r requirements.txt && pytest
+          cd ../order_service && pip install -r requirements.txt && pytest
 
-    - name: Log in to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Log in to ACR
-      run: az acr login --name sit72210dacr
+      - name: Log in to ACR
+        run: az acr login --name sit72210dacr
 
-    - name: Build and push Docker images
-      run: |
-        docker build -t sit72210dacr.azurecr.io/frontend:latest ./frontend
-        docker build -t sit72210dacr.azurecr.io/customer-service:latest ./backend/customer_service
-        docker build -t sit72210dacr.azurecr.io/product-service:latest ./backend/product_service
-        docker build -t sit72210dacr.azurecr.io/order-service:latest ./backend/order_service
-        docker push sit72210dacr.azurecr.io/frontend:latest
-        docker push sit72210dacr.azurecr.io/customer-service:latest
-        docker push sit72210dacr.azurecr.io/product-service:latest
-        docker push sit72210dacr.azurecr.io/order-service:latest
-#test
+      - name: Build and push Docker images
+        run: |
+          docker build -t sit72210dacr.azurecr.io/frontend:latest ./frontend
+          docker build -t sit72210dacr.azurecr.io/customer-service:latest ./backend/customer_service
+          docker build -t sit72210dacr.azurecr.io/product-service:latest ./backend/product_service
+          docker build -t sit72210dacr.azurecr.io/order-service:latest ./backend/order_service
+          docker push sit72210dacr.azurecr.io/frontend:latest
+          docker push sit72210dacr.azurecr.io/customer-service:latest
+          docker push sit72210dacr.azurecr.io/product-service:latest
+          docker push sit72210dacr.azurecr.io/order-service:latest
