@@ -112,13 +112,26 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ./frontend
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }} ./backend/customer_service
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }} ./backend/product_service
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }} ./backend/order_service
-
+          # Frontend
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} \
+                       -t ${{ env.ACR_LOGIN_SERVER }}/frontend:latest ./frontend
           docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:latest
+
+          # Customer Service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }} \
+                       -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:latest ./backend/customer_service
           docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:latest
+
+          # Product Service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }} \
+                       -t ${{ env.ACR_LOGIN_SERVER }}/product-service:latest ./backend/product_service
           docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:latest
+
+          # Order Service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }} \
+                       -t ${{ env.ACR_LOGIN_SERVER }}/order-service:latest ./backend/order_service
           docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }}
-#tes
+          docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:latest
