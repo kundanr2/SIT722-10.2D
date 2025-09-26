@@ -1,0 +1,55 @@
+name: CD Staging
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set AKS context
+      run: az aks get-credentials --resource-group 10.2d-rg --name 10.2d-aks --overwrite-existing
+
+    - name: Create namespace
+      run: kubectl apply -f k8s/namespace-staging.yaml
+
+    - name: Apply secrets & config
+      run: |
+        kubectl apply -f k8s/secrets.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/configmaps.yaml --namespace=10.2d-staging
+
+    - name: Deploy services
+      run: |
+        kubectl apply -f k8s/customer-db.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/product-db.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/order-db.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/rabbitmq.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/customer-service.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/product-service.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/order-service.yaml --namespace=10.2d-staging
+        kubectl apply -f k8s/frontend.yaml --namespace=10.2d-staging
+
+    - name: Wait for frontend LoadBalancer IP
+      run: |
+        echo "Waiting for LoadBalancer IP..."
+        for i in {1..30}; do
+          kubectl get svc frontend --namespace=10.2d-staging -o jsonpath='{.status.loadBalancer.ingress[0].ip}' && break
+          sleep 10
+        done
+
+    - name: Curl health check
+      run: |
+        FRONTEND_IP=$(kubectl get svc frontend --namespace=10.2d-staging -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        curl -f http://$FRONTEND_IP || exit 1
+
+    - name: Destroy staging environment
+      run: kubectl delete namespace 10.2d-staging

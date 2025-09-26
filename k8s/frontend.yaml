@@ -1,46 +1,61 @@
-# week05/k8s/frontend.yaml
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-w05-aks
-  labels:
-    app: frontend
+  name: frontend-deployment
+  namespace: 10.2d-staging
+  labels: { app: frontend }
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: frontend
+  replicas: 2
+  selector: { matchLabels: { app: frontend } }
   template:
-    metadata:
-      labels:
-        app: frontend
+    metadata: { labels: { app: frontend } }
     spec:
       containers:
-      - name: frontend-container
-        image: durgeshsamariya.azurecr.io/week05ex01f:v1
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-        env:
-        - name: PRODUCT_API_BASE_URL
-          value: http://product-service-w05-aks:8000
-        - name: ORDER_API_BASE_URL
-          value: http://order-service-w05-aks:8001
-        - name: CUSTOMER_API_BASE_URL
-          value: http://customer-service-w05-aks:8002
+      - name: frontend
+        image: 10.2dacr.azurecr.io/frontend:latest
+        ports: [{ containerPort: 80 }]
+        envFrom:
+        - configMapRef: { name: app-config }
+      imagePullSecrets:
+      - name: acr-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-w05-aks
-  labels:
-    app: frontend
+  name: frontend
+  namespace: 10.2d-staging
 spec:
-  selector:
-    app: frontend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+  selector: { app: frontend }
+  ports: [{ port: 80, targetPort: 80 }]
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: 10.2d-prod
+  labels: { app: frontend }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: frontend } }
+  template:
+    metadata: { labels: { app: frontend } }
+    spec:
+      containers:
+      - name: frontend
+        image: 10.2dacr.azurecr.io/frontend:latest
+        ports: [{ containerPort: 80 }]
+        envFrom:
+        - configMapRef: { name: app-config }
+      imagePullSecrets:
+      - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: 10.2d-prod
+spec:
+  selector: { app: frontend }
+  ports: [{ port: 80, targetPort: 80 }]
   type: LoadBalancer

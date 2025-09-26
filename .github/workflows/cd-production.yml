@@ -1,0 +1,41 @@
+name: CD Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set AKS context
+      run: az aks get-credentials --resource-group 10.2d-rg --name 10.2d-aks --overwrite-existing
+
+    - name: Create namespace (if not exists)
+      run: kubectl apply -f k8s/namespace-production.yaml
+
+    - name: Apply secrets & config
+      run: |
+        kubectl apply -f k8s/secrets.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/configmaps.yaml --namespace=10.2d-prod
+
+    - name: Deploy services
+      run: |
+        kubectl apply -f k8s/customer-db.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/product-db.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/order-db.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/rabbitmq.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/customer-service.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/product-service.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/order-service.yaml --namespace=10.2d-prod
+        kubectl apply -f k8s/frontend.yaml --namespace=10.2d-prod

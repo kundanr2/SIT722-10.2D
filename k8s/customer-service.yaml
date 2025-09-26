@@ -1,57 +1,69 @@
-# week05/k8s/customer-service.yaml
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customer-service-w05-aks
-  labels:
-    app: customer-service
+  name: customer-deployment
+  namespace: 10.2d-staging
+  labels: { app: customer-service }
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: customer-service
+  replicas: 2
+  selector: { matchLabels: { app: customer-service } }
   template:
-    metadata:
-      labels:
-        app: customer-service
+    metadata: { labels: { app: customer-service } }
     spec:
       containers:
-      - name: customer-service-container
-        image: durgeshsamariya.azurecr.io/week05ex01cu:v1
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8002
+      - name: customer-service
+        image: 10.2dacr.azurecr.io/customer-service:latest
+        ports: [{ containerPort: 8000 }]
         env:
-        - name: POSTGRES_HOST
-          value: customer-db-service-w05-aks
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              name: ecomm-config-w05-aks
-              key: CUSTOMERS_DB_NAME
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: ecomm-secrets-w05-aks
-              key: POSTGRES_USER
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: ecomm-secrets-w05-aks
-              key: POSTGRES_PASSWORD
+        - name: DATABASE_URL
+          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@customer-db:5432/$(POSTGRES_DB_CUSTOMER)
+        envFrom:
+        - configMapRef: { name: app-config }
+        - secretRef:    { name: app-secrets }
+      imagePullSecrets:
+      - name: acr-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: customer-service-w05-aks
-  labels:
-    app: customer-service
+  name: customer-service
+  namespace: 10.2d-staging
 spec:
-  selector:
-    app: customer-service
-  ports:
-    - protocol: TCP
-      port: 8002
-      targetPort: 8000
-  type: LoadBalancer
+  selector: { app: customer-service }
+  ports: [{ port: 80, targetPort: 8000 }]
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-deployment
+  namespace: 10.2d-prod
+  labels: { app: customer-service }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: customer-service } }
+  template:
+    metadata: { labels: { app: customer-service } }
+    spec:
+      containers:
+      - name: customer-service
+        image: 10.2dacr.azurecr.io/customer-service:latest
+        ports: [{ containerPort: 8000 }]
+        env:
+        - name: DATABASE_URL
+          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@customer-db:5432/$(POSTGRES_DB_CUSTOMER)
+        envFrom:
+        - configMapRef: { name: app-config }
+        - secretRef:    { name: app-secrets }
+      imagePullSecrets:
+      - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-service
+  namespace: 10.2d-prod
+spec:
+  selector: { app: customer-service }
+  ports: [{ port: 80, targetPort: 8000 }]
+  type: ClusterIP

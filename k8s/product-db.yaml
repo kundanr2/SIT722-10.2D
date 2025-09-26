@@ -1,54 +1,73 @@
-# week05/k8s/product-db.yaml
-
+# staging
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-db-deployment-w05-aks
-  labels:
-    app: product-db
+  name: product-db
+  namespace: 10.2d-staging
+  labels: { app: product-db }
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: product-db
+  selector: { matchLabels: { app: product-db } }
   template:
-    metadata:
-      labels:
-        app: product-db
+    metadata: { labels: { app: product-db } }
     spec:
       containers:
       - name: postgres
         image: postgres:15-alpine
-        ports:
-        - containerPort: 5432
         env:
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              name: ecomm-config-w05-aks
-              key: PRODUCTS_DB_NAME
         - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: ecomm-secrets-w05-aks
-              key: POSTGRES_USER
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER } }
         - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: ecomm-secrets-w05-aks
-              key: POSTGRES_PASSWORD
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
+        - name: POSTGRES_DB
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_PRODUCT } }
+        ports: [{ containerPort: 5432 }]
+        volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+      volumes: [{ name: data, emptyDir: {} }]
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: product-db-service-w05-aks
-  labels:
-    app: product-db
+  name: product-db
+  namespace: 10.2d-staging
 spec:
-  selector:
-    app: product-db
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432
+  selector: { app: product-db }
+  ports: [{ port: 5432, targetPort: 5432 }]
+  type: ClusterIP
+---
+# production
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-db
+  namespace: 10.2d-prod
+  labels: { app: product-db }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: product-db } }
+  template:
+    metadata: { labels: { app: product-db } }
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_USER
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER } }
+        - name: POSTGRES_PASSWORD
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
+        - name: POSTGRES_DB
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_PRODUCT } }
+        ports: [{ containerPort: 5432 }]
+        volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+      volumes: [{ name: data, emptyDir: {} }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-db
+  namespace: 10.2d-prod
+spec:
+  selector: { app: product-db }
+  ports: [{ port: 5432, targetPort: 5432 }]
   type: ClusterIP

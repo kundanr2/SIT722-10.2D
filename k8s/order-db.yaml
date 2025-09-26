@@ -1,54 +1,73 @@
-# week05/k8s/order-db.yaml
-
+# staging
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-db-deployment-w05-aks
-  labels:
-    app: order-db
+  name: order-db
+  namespace: 10.2d-staging
+  labels: { app: order-db }
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: order-db
+  selector: { matchLabels: { app: order-db } }
   template:
-    metadata:
-      labels:
-        app: order-db
+    metadata: { labels: { app: order-db } }
     spec:
       containers:
       - name: postgres
         image: postgres:15-alpine
-        ports:
-        - containerPort: 5432
         env:
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              name: ecomm-config-w05-aks
-              key: ORDERS_DB_NAME
         - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: ecomm-secrets-w05-aks
-              key: POSTGRES_USER
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER } }
         - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: ecomm-secrets-w05-aks
-              key: POSTGRES_PASSWORD
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
+        - name: POSTGRES_DB
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_ORDER } }
+        ports: [{ containerPort: 5432 }]
+        volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+      volumes: [{ name: data, emptyDir: {} }]
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: order-db-service-w05-aks
-  labels:
-    app: order-db
+  name: order-db
+  namespace: 10.2d-staging
 spec:
-  selector:
-    app: order-db
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432
+  selector: { app: order-db }
+  ports: [{ port: 5432, targetPort: 5432 }]
+  type: ClusterIP
+---
+# production
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-db
+  namespace: 10.2d-prod
+  labels: { app: order-db }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: order-db } }
+  template:
+    metadata: { labels: { app: order-db } }
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_USER
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER } }
+        - name: POSTGRES_PASSWORD
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
+        - name: POSTGRES_DB
+          valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_ORDER } }
+        ports: [{ containerPort: 5432 }]
+        volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+      volumes: [{ name: data, emptyDir: {} }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-db
+  namespace: 10.2d-prod
+spec:
+  selector: { app: order-db }
+  ports: [{ port: 5432, targetPort: 5432 }]
   type: ClusterIP
