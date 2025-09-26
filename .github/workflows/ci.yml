@@ -3,9 +3,10 @@ name: CI Pipeline - Stage 1
 on:
   push:
     branches:
-      - testing
+      - testing   # Trigger only on testing branch
 
 env:
+  ACR_NAME: sit72210dacr
   ACR_LOGIN_SERVER: sit72210dacr.azurecr.io
   IMAGE_TAG: ${{ github.sha }}
 
@@ -98,6 +99,7 @@ jobs:
           POSTGRES_DB: orders
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          PRODUCT_SERVICE_URL: http://localhost:8000   # fallback for tests
         run: pytest tests --disable-warnings
 
       - name: Azure Login
@@ -105,21 +107,17 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Docker Login to ACR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.AZURE_CLIENT_ID }}
-          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Log in to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
 
-      - name: Build and Push Images
+      - name: Build and Push Docker Images
         run: |
           docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ./frontend
           docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }} ./backend/customer_service
           docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }} ./backend/product_service
           docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }} ./backend/order_service
+
           docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }}
-#t
