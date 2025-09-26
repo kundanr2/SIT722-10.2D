@@ -4,10 +4,17 @@ metadata:
   name: app-config
   namespace: 10.2d-staging
 data:
+  PRODUCTS_DB_NAME: products
+  ORDERS_DB_NAME: orders
+  CUSTOMERS_DB_NAME: customers
+
+  AZURE_STORAGE_CONTAINER_NAME: images
+  AZURE_SAS_TOKEN_EXPIRY_HOURS: "24"
+
+  PRODUCT_SERVICE_URL: http://product-service
+  ORDER_SERVICE_URL: http://order-service
   CUSTOMER_SERVICE_URL: http://customer-service
-  PRODUCT_SERVICE_URL:  http://product-service
-  ORDER_SERVICE_URL:    http://order-service
-  RABBITMQ_HOST:        rabbitmq
+  RABBITMQ_HOST: rabbitmq
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -15,7 +22,14 @@ metadata:
   name: app-config
   namespace: 10.2d-prod
 data:
+  PRODUCTS_DB_NAME: products
+  ORDERS_DB_NAME: orders
+  CUSTOMERS_DB_NAME: customers
+
+  AZURE_STORAGE_CONTAINER_NAME: images
+  AZURE_SAS_TOKEN_EXPIRY_HOURS: "24"
+
+  PRODUCT_SERVICE_URL: http://product-service
+  ORDER_SERVICE_URL: http://order-service
   CUSTOMER_SERVICE_URL: http://customer-service
-  PRODUCT_SERVICE_URL:  http://product-service
-  ORDER_SERVICE_URL:    http://order-service
-  RABBITMQ_HOST:        rabbitmq
+  RABBITMQ_HOST: rabbitmq

@@ -19,7 +19,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Set AKS context
-      run: az aks get-credentials --resource-group 10.2d-rg --name 10.2d-aks --overwrite-existing
+      run: az aks get-credentials --resource-group 10.2d-rg --name sit722aks --overwrite-existing
 
     - name: Create namespace (if not exists)
       run: kubectl apply -f k8s/namespace-production.yaml

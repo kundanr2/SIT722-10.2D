@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 10.2dacr.azurecr.io/frontend:latest
+        image: sit72210dacr.azurecr.io/frontend:latest
         ports: [{ containerPort: 80 }]
         envFrom:
         - configMapRef: { name: app-config }

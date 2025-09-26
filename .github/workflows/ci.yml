@@ -43,3 +43,4 @@ jobs:
         docker push sit72210dacr.azurecr.io/customer-service:latest
         docker push sit72210dacr.azurecr.io/product-service:latest
         docker push sit72210dacr.azurecr.io/order-service:latest
+#test
