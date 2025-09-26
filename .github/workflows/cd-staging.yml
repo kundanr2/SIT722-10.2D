@@ -38,10 +38,10 @@ jobs:
       - name: Wait for services to be ready
         run: kubectl rollout status deployment/frontend -n 10.2d-staging
 
-      # Optional: add a manual approval step for acceptance testing
+      # Manual verification step (placeholder)
       - name: Pause for manual acceptance testing
-        uses: hmarr/auto-approve-action@v2
-        if: always()
+        run: echo "✅ Staging environment deployed. Please run manual tests now."
 
       - name: Destroy staging environment
+        if: always()
         run: kubectl delete namespace 10.2d-staging
