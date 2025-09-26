@@ -121,3 +121,4 @@ jobs:
           docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }}
+#test
