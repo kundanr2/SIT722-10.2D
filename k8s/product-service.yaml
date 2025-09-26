@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: product-service
-        image: 10.2dacr.azurecr.io/product-service:latest
+        image: sit72210dacr.azurecr.io/product-service:latest
         ports: [{ containerPort: 8000 }]
         env:
         - name: DATABASE_URL
